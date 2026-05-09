@@ -1,0 +1,11 @@
+node_modules/
+.output/
+.wxt/
+.agents/
+
+*.log
+*.local
+*.zip
+
+.DS_Store
+Thumbs.db
