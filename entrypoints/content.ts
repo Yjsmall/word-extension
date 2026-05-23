@@ -718,12 +718,17 @@ function showWordChipPanel(
 
     sendMessage('analyzeBigBang', request)
       .then(async (result) => {
+        if (!result || !result.items || result.items.length === 0) {
+          throw new Error('AI 返回结果为空')
+        }
         await sendMessage('saveBigBangRecords', { request, result })
         ui.panel.hidden = true
         hideWordChipPanel(panel)
       })
       .catch((error) => {
-        ui.body.innerHTML = `<div class="error">${escapeHtml(getErrorMessage(error))}</div>`
+        const msg = getErrorMessage(error)
+        console.error('[BigBang] error:', msg, 'request:', JSON.stringify(request))
+        ui.body.innerHTML = `<div class="error">${escapeHtml(msg)}</div>`
       })
   })
 

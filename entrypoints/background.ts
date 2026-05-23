@@ -47,8 +47,15 @@ export default defineBackground(() => {
 
   onMessage('analyzeBigBang', async ({ data }) => {
     const settings = await assistantSettings.getValue()
-    const result = await analyzeBigBangWithAi(settings, data)
-    return result
+    console.log('[BigBang] settings:', JSON.stringify({ ...settings, apiKey: settings.apiKey ? '***' + settings.apiKey.slice(-4) : '(empty)' }))
+    try {
+      const result = await analyzeBigBangWithAi(settings, data)
+      console.log('[BigBang] result items:', result.items.length)
+      return result
+    } catch (error) {
+      console.error('[BigBang] analyze failed:', error)
+      throw error
+    }
   })
 
   onMessage('importRecords', async ({ data }) => {
