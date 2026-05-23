@@ -1,6 +1,7 @@
 import { defineExtensionMessaging } from '@webext-core/messaging'
 import type {
   AssistantSettings,
+  BigBangResult,
   TranslationRecord,
   TranslationRequest,
   TranslationResult
@@ -8,11 +9,13 @@ import type {
 
 interface ProtocolMap {
   translateSelection(data: TranslationRequest): TranslationResult
+  analyzeBigBang(data: TranslationRequest): BigBangResult
   getSettings(): AssistantSettings
   saveSettings(data: AssistantSettings): AssistantSettings
   getRecords(): TranslationRecord[]
   deleteRecord(data: { id: string }): { ok: true }
   clearRecords(): { ok: true }
+  importRecords(data: { records: TranslationRecord[] }): { ok: true }
 }
 
 export const { sendMessage, onMessage } =

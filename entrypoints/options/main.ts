@@ -23,7 +23,12 @@ const summary = getElement<HTMLParagraphElement>('summary')
 const recordsBody = getElement<HTMLTableSectionElement>('recordsBody')
 const exportJson = getElement<HTMLButtonElement>('exportJson')
 const exportCsv = getElement<HTMLButtonElement>('exportCsv')
+const importRecordsBtn = getElement<HTMLButtonElement>('importRecords')
+const importRecordsInput = getElement<HTMLInputElement>('importRecordsInput')
 const clearRecords = getElement<HTMLButtonElement>('clearRecords')
+const exportConfig = getElement<HTMLButtonElement>('exportConfig')
+const importConfig = getElement<HTMLButtonElement>('importConfig')
+const importConfigInput = getElement<HTMLInputElement>('importConfigInput')
 
 let records: TranslationRecord[] = []
 
@@ -47,12 +52,80 @@ exportCsv.addEventListener('click', () => {
   )
 })
 
+importRecordsBtn.addEventListener('click', () => {
+  importRecordsInput.value = ''
+  importRecordsInput.click()
+})
+
+importRecordsInput.addEventListener('change', async () => {
+  const file = importRecordsInput.files?.[0]
+  if (!file) return
+
+  try {
+    const text = await file.text()
+    const imported = JSON.parse(text)
+    const list = Array.isArray(imported)
+      ? imported
+      : Array.isArray(imported.records)
+        ? imported.records
+        : []
+
+    if (list.length === 0) {
+      flashStatus('文件中没有找到有效记录')
+      return
+    }
+
+    await sendMessage('importRecords', { records: list })
+    records = await sendMessage('getRecords')
+    render()
+    flashStatus(`已导入 ${list.length} 条记录`)
+  } catch {
+    flashStatus('文件解析失败，请检查 JSON 格式')
+  }
+})
+
 clearRecords.addEventListener('click', async () => {
   if (!confirm('Clear all marked words?')) return
 
   await sendMessage('clearRecords')
   records = []
   render()
+})
+
+exportConfig.addEventListener('click', async () => {
+  const settings = await sendMessage('getSettings')
+  downloadFile(
+    `ai-selection-config-${dateStamp()}.json`,
+    JSON.stringify(settings, null, 2),
+    'application/json'
+  )
+  flashStatus('配置已导出')
+})
+
+importConfig.addEventListener('click', () => {
+  importConfigInput.value = ''
+  importConfigInput.click()
+})
+
+importConfigInput.addEventListener('change', async () => {
+  const file = importConfigInput.files?.[0]
+  if (!file) return
+
+  try {
+    const text = await file.text()
+    const settings = JSON.parse(text) as AssistantSettings
+
+    if (!settings.provider || !settings.baseUrl || !settings.model) {
+      flashStatus('配置文件缺少必要字段')
+      return
+    }
+
+    const saved = await sendMessage('saveSettings', settings)
+    fillSettings(saved)
+    flashStatus('配置已导入')
+  } catch {
+    flashStatus('文件解析失败，请检查 JSON 格式')
+  }
 })
 
 recordsBody.addEventListener('click', async (event: MouseEvent) => {

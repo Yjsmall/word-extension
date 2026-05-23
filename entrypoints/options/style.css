@@ -139,6 +139,16 @@ button:hover {
   background: #ffe7e8;
 }
 
+.ghost-neutral {
+  color: #185445;
+  background: #edf5f0;
+  border-color: #c6d9cf;
+}
+
+.ghost-neutral:hover {
+  background: #dcebe3;
+}
+
 .table-shell {
   border: 1px solid #dce6e0;
   border-radius: 8px;

@@ -42,3 +42,13 @@ export async function deleteRecord(id: string) {
 export function clearRecords() {
   return translationRecords.setValue([])
 }
+
+export async function importRecords(records: TranslationRecord[]) {
+  const currentRecords = await translationRecords.getValue()
+  const existingIds = new Set(currentRecords.map((r) => r.id))
+  const newRecords = records.filter((r) => !existingIds.has(r.id))
+  if (newRecords.length === 0) return
+  await translationRecords.setValue(
+    [...newRecords, ...currentRecords].slice(0, MAX_RECORDS)
+  )
+}

@@ -1,11 +1,12 @@
 import type {
   AssistantSettings,
+  BigBangResult,
   ExamplePair,
   TranslationRequest,
   TranslationResult
 } from '../shared/types'
 import { normalizeSettings } from '../shared/providerDefaults'
-import { buildPrompt, formatErrorMessage } from './prompt'
+import { buildPrompt, buildBigBangPrompt, formatErrorMessage } from './prompt'
 
 interface ChatCompletionResponse {
   choices?: Array<{
@@ -31,12 +32,8 @@ export async function translateWithAi(
 
   let lastError: unknown
   for (let attempt = 0; attempt <= MAX_PARSE_RETRIES; attempt++) {
-    const content = await requestChatCompletion(
-      normalized,
-      request,
-      attempt,
-      lastError
-    )
+    const promptContent = buildPrompt(normalized, request, attempt, lastError)
+    const content = await requestChatCompletion(normalized, promptContent)
 
     try {
       return parseResult(content, request.word)
@@ -48,11 +45,33 @@ export async function translateWithAi(
   throw new Error(`AI 返回结果解析失败：${formatErrorMessage(lastError)}`)
 }
 
+export async function analyzeBigBangWithAi(
+  settings: AssistantSettings,
+  request: TranslationRequest
+): Promise<BigBangResult> {
+  const normalized = normalizeSettings(settings)
+  if (!normalized.apiKey) {
+    throw new Error('请先在插件弹窗中填写 API Key。')
+  }
+
+  let lastError: unknown
+  for (let attempt = 0; attempt <= MAX_PARSE_RETRIES; attempt++) {
+    const promptContent = buildBigBangPrompt(normalized, request, attempt, lastError)
+    const content = await requestChatCompletion(normalized, promptContent)
+
+    try {
+      return parseBigBangResult(content, request.word)
+    } catch (error) {
+      lastError = error
+    }
+  }
+
+  throw new Error(`AI 返回结果解析失败：${formatErrorMessage(lastError)}`)
+}
+
 async function requestChatCompletion(
   settings: AssistantSettings,
-  request: TranslationRequest,
-  attempt: number,
-  lastError: unknown
+  promptContent: string
 ): Promise<string> {
   const response = await fetch(`${settings.baseUrl}/chat/completions`, {
     method: 'POST',
@@ -66,15 +85,15 @@ async function requestChatCompletion(
         {
           role: 'system',
           content:
-            'You are a precise vocabulary tutor. Return only valid compact json.'
+            'You are a precise vocabulary tutor. Respond in strict JSON format following the schema provided by the user. Return ONLY valid JSON — no markdown, no code fences, no extra text, no comments.'
         },
         {
           role: 'user',
-          content: buildPrompt(settings, request, attempt, lastError)
+          content: promptContent
         }
       ],
       temperature: 0.2,
-      max_tokens: 800,
+      max_tokens: 1200,
       response_format: { type: 'json_object' }
     })
   })
@@ -134,4 +153,29 @@ function extractJson(content: string): string {
   if (start >= 0 && end > start) return trimmed.slice(start, end + 1)
 
   return trimmed
+}
+
+function parseBigBangResult(
+  content: string,
+  fallbackOriginal: string
+): BigBangResult {
+  const parsed = JSON.parse(extractJson(content)) as Partial<BigBangResult>
+  const result: BigBangResult = {
+    original: String(parsed.original || fallbackOriginal),
+    items: Array.isArray(parsed.items)
+      ? parsed.items.map((item) => ({
+          word: String(item.word || ''),
+          type: String(item.type || ''),
+          meaning: String(item.meaning || ''),
+          explanation: String(item.explanation || '')
+        }))
+      : [],
+    sentenceTranslation: String(parsed.sentenceTranslation || '')
+  }
+
+  if (result.items.length === 0) {
+    throw new Error('缺少单词/词组分解结果。')
+  }
+
+  return result
 }

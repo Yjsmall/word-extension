@@ -37,3 +37,16 @@ export interface TranslationRecord extends TranslationRequest, TranslationResult
 export interface AssistantError {
   message: string
 }
+
+export interface BigBangItem {
+  word: string
+  type: string
+  meaning: string
+  explanation: string
+}
+
+export interface BigBangResult {
+  original: string
+  items: BigBangItem[]
+  sentenceTranslation: string
+}

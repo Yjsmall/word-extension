@@ -1,11 +1,12 @@
 import { assistantSettings } from '../src/utils/storage'
 import { onMessage } from '../src/utils/messaging'
 import { normalizeSettings } from '../src/shared/providerDefaults'
-import { translateWithAi } from '../src/utils/aiClient'
+import { translateWithAi, analyzeBigBangWithAi } from '../src/utils/aiClient'
 import {
   clearRecords,
   deleteRecord,
   getRecords,
+  importRecords,
   saveRecord
 } from '../src/utils/recordsService'
 
@@ -41,5 +42,16 @@ export default defineBackground(() => {
     const result = await translateWithAi(settings, data)
     await saveRecord(data, result, normalizeSettings(settings))
     return result
+  })
+
+  onMessage('analyzeBigBang', async ({ data }) => {
+    const settings = await assistantSettings.getValue()
+    const result = await analyzeBigBangWithAi(settings, data)
+    return result
+  })
+
+  onMessage('importRecords', async ({ data }) => {
+    await importRecords(data.records)
+    return { ok: true }
   })
 })
