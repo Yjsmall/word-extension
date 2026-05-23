@@ -261,6 +261,9 @@ function createAssistantUi(): AssistantUi {
       .bigbang-icon:active {
         transform: scale(0.95);
       }
+      .bigbang-icon[hidden] {
+        display: none;
+      }
       .top {
         display: flex;
         align-items: center;
@@ -442,7 +445,8 @@ function isEnglishWord(value: string): boolean {
 }
 
 function isEnglishText(value: string): boolean {
-  return /^[A-Za-z\s'\-]+$/.test(value) && /[A-Za-z]/.test(value)
+  const cleaned = value.replace(/[^A-Za-z\s]/g, '').trim()
+  return cleaned.length > 0 && /[A-Za-z]/.test(cleaned)
 }
 
 function trimSelectionRange(range: Range): Range {

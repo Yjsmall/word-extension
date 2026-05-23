@@ -10,29 +10,29 @@ body {
     "Helvetica Neue", system-ui, sans-serif;
   color: #111111;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
 }
 
-/* ─── App Shell: 360×480 locked ─── */
+/* ─── App Shell: full-page centered ─── */
 
 .app {
-  width: 360px;
-  height: 480px;
+  width: min(960px, calc(100vw - 32px));
+  margin: 24px auto 40px;
   display: flex;
   flex-direction: column;
   background: #ffffff;
-  overflow: hidden;
-  box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.06),
-    0 4px 24px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e8e8ed;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 /* ─── Header ─── */
 
 .app-header {
-  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px 8px;
+  padding: 14px 20px 10px;
   border-bottom: 1px solid #e8e8ed;
 }
 
@@ -52,12 +52,7 @@ body {
 /* ─── Scrollable Content ─── */
 
 .app-scroll {
-  flex: 1 1 auto;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 10px 14px 8px;
-  scrollbar-width: thin;
-  scrollbar-color: #e8e8ed transparent;
+  padding: 14px 20px 10px;
 }
 
 .app-scroll::-webkit-scrollbar {
@@ -226,7 +221,6 @@ button.sec.del:hover {
   border-radius: 8px;
   overflow: auto;
   background: #ffffff;
-  max-height: 220px;
   scrollbar-width: thin;
   scrollbar-color: #e8e8ed transparent;
 }
@@ -347,11 +341,10 @@ button.sec.del:hover {
 /* ─── Footer ─── */
 
 .app-footer {
-  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 5px 14px 7px;
+  padding: 8px 20px 10px;
   border-top: 1px solid #f0f0f0;
 }
 
