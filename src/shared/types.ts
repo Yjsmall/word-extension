@@ -40,7 +40,6 @@ export interface AssistantError {
 
 export interface BigBangItem {
   word: string
-  type: string
   meaning: string
   explanation: string
 }

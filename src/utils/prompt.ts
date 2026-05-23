@@ -64,23 +64,21 @@ export function buildBigBangPrompt(
       '   例如 "get to" 是词组，因为它有固定语义"到达/接触到"，应作为一条 item。',
       '   例如 "airport home" 不是词组，两个单词没有组合后的固定语义，应拆成两条 item：{word:"airport",...} 和 {word:"home",...}。',
       '   例如 "the quick brown fox" 四个单词各不相关，items 长度为 4。',
-      '每个 item 包含：word（单词或词组本身）、type（词组填"phrase"，单词填具体词性如 noun/verb/adj/adv/prep/art 等）、meaning（简短中文释义，词组≤20字，单词≤12字）、explanation（在句子中的详细解释，≤50字）。',
+      '每个 item 包含：word（单词或词组本身）、meaning（简短中文释义，词组≤20字，单词≤12字）、explanation（在句子中的详细解释，≤50字）。',
       'sentenceTranslation 是整个句子的完整翻译。',
       '如果 selectedText 只有一个单词，items 数组长度就是 1。',
-      '专有名词要标注类型，如 "London" → type: "noun", meaning: "伦敦，地名"。'
+      '专有名词要标注说明，如 "London" → meaning: "伦敦（地名）"。'
     ],
     requiredJsonShape: {
       original: '用户选中的原始文本',
       items: [
         {
           word: '第一个单词或词组',
-          type: '词性 或 "phrase"',
           meaning: '简短中文释义',
           explanation: '在句子中的详细解释'
         },
         {
           word: '第二个单词或词组',
-          type: '词性 或 "phrase"',
           meaning: '简短中文释义',
           explanation: '在句子中的详细解释'
         }
@@ -94,7 +92,7 @@ export function buildBigBangPrompt(
         expectedOutput: {
           original: 'get to',
           items: [
-            { word: 'get to', type: 'phrase', meaning: '到达', explanation: '表示抵达某地的固定搭配' }
+            { word: 'get to', meaning: '到达', explanation: '表示抵达某地的固定搭配' }
           ],
           sentenceTranslation: '从我家到机场需要 3 分钟。'
         }
@@ -105,8 +103,8 @@ export function buildBigBangPrompt(
         expectedOutput: {
           original: 'airport home',
           items: [
-            { word: 'airport', type: 'noun', meaning: '机场', explanation: '指飞机起降的场所' },
-            { word: 'home', type: 'noun', meaning: '家', explanation: '指居住的地方' }
+            { word: 'airport', meaning: '机场', explanation: '指飞机起降的场所' },
+            { word: 'home', meaning: '家', explanation: '指居住的地方' }
           ],
           sentenceTranslation: '从我家到机场需要 3 分钟。'
         }

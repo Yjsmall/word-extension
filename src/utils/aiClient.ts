@@ -167,7 +167,6 @@ function parseBigBangResult(
     items: Array.isArray(parsed.items)
       ? parsed.items.map((item) => ({
           word: String(item.word || ''),
-          type: String(item.type || ''),
           meaning: String(item.meaning || ''),
           explanation: String(item.explanation || '')
         }))
