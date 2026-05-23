@@ -2,6 +2,7 @@ import { assistantSettings } from '../src/utils/storage'
 import { onMessage } from '../src/utils/messaging'
 import { normalizeSettings } from '../src/shared/providerDefaults'
 import { translateWithAi, analyzeBigBangWithAi } from '../src/utils/aiClient'
+import type { BigBangResult } from '../src/shared/types'
 import {
   clearRecords,
   deleteRecord,
@@ -52,6 +53,25 @@ export default defineBackground(() => {
 
   onMessage('importRecords', async ({ data }) => {
     await importRecords(data.records)
+    return { ok: true }
+  })
+
+  onMessage('saveBigBangRecords', async ({ data }) => {
+    const settings = await assistantSettings.getValue()
+    const normalized = normalizeSettings(settings)
+    const { request, result } = data
+    for (const item of result.items) {
+      await saveRecord(
+        { ...request, word: item.word },
+        {
+          word: item.word,
+          sentenceMeaning: `${item.meaning}（${item.explanation}）`,
+          sentenceTranslation: result.sentenceTranslation,
+          examples: []
+        },
+        normalized
+      )
+    }
     return { ok: true }
   })
 })

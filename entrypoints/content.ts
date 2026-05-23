@@ -701,13 +701,30 @@ function showWordChipPanel(
     })
     if (selected.length === 0) return
     panel.hidden = true
+
     const word = selected.join(' ')
-    ui.panel.classList.add('bigbang')
+    const msg = '⏳ 分析中...'
     ui.panel.hidden = false
     ui.title.textContent = word
-    ui.body.innerHTML = '<div class="status">⏳ 分析中...</div>'
+    ui.body.innerHTML = `<div class="status">${msg}</div>`
     positionPanel(ui.panel, rect)
-    void requestBigBang(ui, { word, sentence: payload.sentence, rect })
+
+    const request = {
+      word,
+      sentence: payload.sentence,
+      pageTitle: document.title,
+      pageUrl: location.href
+    }
+
+    sendMessage('analyzeBigBang', request)
+      .then(async (result) => {
+        await sendMessage('saveBigBangRecords', { request, result })
+        ui.panel.hidden = true
+        hideWordChipPanel(panel)
+      })
+      .catch((error) => {
+        ui.body.innerHTML = `<div class="error">${escapeHtml(getErrorMessage(error))}</div>`
+      })
   })
 
 }
@@ -725,48 +742,4 @@ function positionChipPanel(panel: HTMLElement, rect: DOMRect) {
   panel.style.top = `${Math.max(12, top)}px`
 }
 
-async function requestBigBang(ui: AssistantUi, payload: BigBangPayload) {
-  ui.panel.classList.add('bigbang')
-  positionPanel(ui.panel, payload.rect)
-  ui.title.textContent = payload.word
-  ui.body.innerHTML = '<div class="status">⚡ 大爆炸分析中...</div>'
-  ui.panel.hidden = false
 
-  try {
-    const result = await sendMessage('analyzeBigBang', {
-      word: payload.word,
-      sentence: payload.sentence,
-      pageTitle: document.title,
-      pageUrl: location.href
-    })
-    renderBigBangResult(ui, result)
-  } catch (error) {
-    ui.body.innerHTML = `<div class="error">${escapeHtml(getErrorMessage(error))}</div>`
-  }
-}
-
-function renderBigBangResult(ui: AssistantUi, result: BigBangResult) {
-  const cards = result.items
-    .map(
-      (item, index) => {
-        const isPhrase = item.type === 'phrase'
-        const extraClass = isPhrase ? ' phrase' : ''
-        return `
-        <div class="bang-card${extraClass}" style="--card-index: ${index}">
-          <div>
-            <span class="bang-word">${escapeHtml(item.word)}</span>
-            <span class="bang-type">${escapeHtml(item.type)}</span>
-          </div>
-          <div class="bang-meaning">${escapeHtml(item.meaning)}</div>
-          <div class="bang-explanation">${escapeHtml(item.explanation)}</div>
-        </div>
-      `
-      }
-    )
-    .join('')
-
-  ui.body.innerHTML = `
-    ${cards}
-    <div class="bang-translation"><strong>整句翻译：</strong>${escapeHtml(result.sentenceTranslation)}</div>
-  `
-}

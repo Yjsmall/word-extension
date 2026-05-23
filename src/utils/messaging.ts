@@ -16,6 +16,10 @@ interface ProtocolMap {
   deleteRecord(data: { id: string }): { ok: true }
   clearRecords(): { ok: true }
   importRecords(data: { records: TranslationRecord[] }): { ok: true }
+  saveBigBangRecords(data: {
+    request: TranslationRequest
+    result: BigBangResult
+  }): { ok: true }
 }
 
 export const { sendMessage, onMessage } =
