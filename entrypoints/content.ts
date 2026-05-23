@@ -224,12 +224,14 @@ function createAssistantUi(): AssistantUi {
         overflow: auto;
         box-sizing: border-box;
         padding: 12px;
-        border: 1px solid rgba(20, 35, 31, .16);
-        border-radius: 8px;
-        background: #fbfffc;
-        color: #17211e;
-        box-shadow: 0 14px 40px rgba(10, 22, 18, .22);
-        font: 13px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        border: 1px solid rgba(0, 0, 0, .08);
+        border-radius: 10px;
+        background: #ffffff;
+        color: #111111;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, .12);
+        font: 13px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Display",
+          "Helvetica Neue", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
       }
       .panel.bigbang {
         width: min(500px, calc(100vw - 24px));
@@ -238,23 +240,26 @@ function createAssistantUi(): AssistantUi {
       .bigbang-icon {
         position: fixed;
         z-index: 2147483646;
-        width: 36px;
-        height: 36px;
+        width: 34px;
+        height: 34px;
         border: 0;
         border-radius: 50%;
-        background: #e8a020;
-        color: #fff;
-        font-size: 18px;
-        line-height: 36px;
+        background: #111111;
+        color: #ffffff;
+        font-size: 16px;
+        line-height: 34px;
         text-align: center;
         cursor: pointer;
-        box-shadow: 0 4px 14px rgba(232, 160, 32, .35);
-        transition: transform .15s ease, box-shadow .15s ease;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, .18);
+        transition: all .2s cubic-bezier(0.25, 0.8, 0.25, 1);
         user-select: none;
       }
       .bigbang-icon:hover {
-        transform: scale(1.15);
-        box-shadow: 0 6px 20px rgba(232, 160, 32, .5);
+        transform: scale(1.12);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, .24);
+      }
+      .bigbang-icon:active {
+        transform: scale(0.95);
       }
       .top {
         display: flex;
@@ -268,94 +273,105 @@ function createAssistantUi(): AssistantUi {
         font-size: 15px;
         font-weight: 700;
         overflow-wrap: anywhere;
+        color: #111111;
       }
       button {
-        width: 28px;
-        height: 28px;
+        width: 26px;
+        height: 26px;
         border: 0;
         border-radius: 6px;
-        background: #eef4ef;
-        color: #17211e;
+        background: #f5f5f7;
+        color: #111111;
         cursor: pointer;
         font: inherit;
+        transition: all .2s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      button:hover {
+        background: #e8e8ed;
       }
       h3 {
-        margin: 10px 0 4px;
-        font-size: 12px;
-        color: #47635a;
+        margin: 8px 0 3px;
+        font-size: 10px;
+        font-weight: 600;
+        color: #86868b;
+        letter-spacing: .04em;
+        text-transform: uppercase;
       }
       p, ul { margin: 0; }
       ul { padding-left: 18px; }
       li { margin: 2px 0; }
-      .status { color: #47635a; }
-      .error { color: #9f1d20; }
-      .example-en { font-weight: 600; }
-      .example-zh { color: #47635a; margin-top: 2px; }
+      .status { color: #86868b; font-size: 12px; }
+      .error { color: #c41e3a; font-size: 12px; }
+      .example-en { font-weight: 600; color: #111111; }
+      .example-zh { color: #86868b; margin-top: 2px; font-size: 12px; }
       .bang-card {
         padding: 10px 12px;
         margin-bottom: 8px;
-        border: 1px solid #e0e8e3;
+        border: 1px solid #e8e8ed;
         border-radius: 8px;
-        background: #f6faf7;
-        border-left: 4px solid #8ab8a8;
+        background: #fafafa;
+        border-left: 3px solid #c7c7cc;
+        transition: all .2s cubic-bezier(0.25, 0.8, 0.25, 1);
       }
       .bang-card:nth-child(even) {
-        background: #f0f6f2;
-        border-left-color: #c49a6c;
+        background: #f5f5f7;
+        border-left-color: #aeaeb2;
       }
       .bang-card.phrase {
-        border-left-color: #e8a020;
-        background: #fdf8ee;
+        border-left-color: #111111;
+        background: #ffffff;
       }
       .bang-word {
-        font-size: 16px;
+        font-size: 15px;
         font-weight: 700;
-        color: #17211e;
+        color: #111111;
       }
       .bang-type {
         display: inline-block;
         margin-left: 6px;
         padding: 1px 6px;
         border-radius: 4px;
-        background: #dce8e1;
-        color: #2d4a40;
-        font-size: 11px;
+        background: #e8e8ed;
+        color: #636366;
+        font-size: 10px;
         font-weight: 600;
         vertical-align: middle;
+        letter-spacing: .02em;
       }
       .bang-card:nth-child(even) .bang-type {
-        background: #e8dccc;
-        color: #5a3e28;
+        background: #dcdce0;
+        color: #555557;
       }
       .bang-card.phrase .bang-type {
-        background: #e8d48b;
-        color: #5a4a08;
+        background: #111111;
+        color: #ffffff;
       }
       .bang-meaning {
         margin-top: 4px;
-        font-size: 14px;
-        color: #1a3a2e;
+        font-size: 13px;
+        color: #111111;
       }
       .bang-explanation {
         margin-top: 2px;
-        font-size: 12px;
-        color: #5a7a6e;
+        font-size: 11px;
+        color: #636366;
       }
       .bang-card:nth-child(even) .bang-meaning {
-        color: #2d1a08;
+        color: #111111;
       }
       .bang-card:nth-child(even) .bang-explanation {
-        color: #6a5a4a;
+        color: #636366;
       }
       .bang-translation {
-        margin-top: 12px;
-        padding-top: 10px;
-        border-top: 1px solid #e0e8e3;
-        font-size: 13px;
-        color: #2d4a40;
+        margin-top: 10px;
+        padding-top: 8px;
+        border-top: 1px solid #e8e8ed;
+        font-size: 12px;
+        color: #636366;
       }
       .bang-translation strong {
-        color: #17211e;
+        color: #111111;
+        font-weight: 600;
       }
     </style>
     <section class="panel" hidden>

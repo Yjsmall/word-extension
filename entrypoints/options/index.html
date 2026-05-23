@@ -3,78 +3,87 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Marked Words</title>
+    <title>AI 划词助手</title>
     <script type="module" src="./main.ts"></script>
   </head>
   <body>
-    <main class="page">
-      <section class="settings-panel">
-        <div>
-          <h1>AI 划词助手</h1>
-          <p id="status"></p>
-        </div>
-        <div class="settings-grid">
-          <label>
-            Provider
-            <select id="provider">
-              <option value="deepseek">DeepSeek</option>
-              <option value="openai-compatible">OpenAI 兼容</option>
-            </select>
-          </label>
-          <label>
-            Base URL
-            <input id="baseUrl" spellcheck="false" />
-          </label>
-          <label>
-            API Key
-            <input id="apiKey" type="password" spellcheck="false" />
-          </label>
-          <label>
-            Model
-            <input id="model" spellcheck="false" />
-          </label>
-          <label>
-            输出语言
-            <input id="targetLanguage" />
-          </label>
-          <button id="saveSettings" type="button">保存配置</button>
-          <button id="exportConfig" type="button" class="ghost-neutral">导出配置</button>
-          <button id="importConfig" type="button" class="ghost-neutral">导入配置</button>
-          <input id="importConfigInput" type="file" accept=".json" hidden />
-        </div>
-      </section>
-
-      <header class="toolbar">
-        <div>
-          <h1>Marked Words</h1>
-          <p id="summary">0 records</p>
-        </div>
-        <div class="toolbar-actions">
-          <input id="search" type="search" placeholder="Search words or sentences" />
-          <button id="exportJson" type="button">Export JSON</button>
-          <button id="exportCsv" type="button">Export CSV</button>
-          <button id="importRecords" type="button" class="ghost">Import JSON</button>
-          <input id="importRecordsInput" type="file" accept=".json" hidden />
-          <button id="clearRecords" type="button" class="danger">Clear</button>
-        </div>
+    <div class="app">
+      <header class="app-header">
+        <h1>AI 划词助手</h1>
+        <p id="status"></p>
       </header>
 
-      <section class="table-shell">
-        <table class="records-table">
-          <thead>
-            <tr>
-              <th>Word</th>
-              <th>Meaning</th>
-              <th>Sentence</th>
-              <th>Translation</th>
-              <th>Examples</th>
-              <th>Created</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="recordsBody"></tbody>
-        </table>
-      </section>
-    </main>
+      <div class="app-scroll">
+        <section class="section-card">
+          <div class="section-label">Settings</div>
+          <div class="settings-grid">
+            <label>
+              Provider
+              <select id="provider">
+                <option value="deepseek">DeepSeek</option>
+                <option value="openai-compatible">OpenAI 兼容</option>
+              </select>
+            </label>
+            <label class="span-2">
+              Base URL
+              <input id="baseUrl" spellcheck="false" />
+            </label>
+            <label class="span-2">
+              API Key
+              <input id="apiKey" type="password" spellcheck="false" />
+            </label>
+            <label>
+              Model
+              <input id="model" spellcheck="false" />
+            </label>
+            <label>
+              输出语言
+              <input id="targetLanguage" />
+            </label>
+          </div>
+          <div class="action-row">
+            <button id="saveSettings" type="button" class="pri">保存配置</button>
+            <button id="exportConfig" type="button" class="sec">导出</button>
+            <button id="importConfig" type="button" class="sec">导入</button>
+            <input id="importConfigInput" type="file" accept=".json" hidden />
+          </div>
+        </section>
+
+        <section class="section-card">
+          <div class="section-label">
+            <span>Marked Words</span>
+            <span id="summary">0 records</span>
+          </div>
+          <div class="action-row rec-actions">
+            <input id="search" type="search" placeholder="Search" />
+            <button id="exportJson" type="button" class="sec">JSON</button>
+            <button id="exportCsv" type="button" class="sec">CSV</button>
+            <button id="importRecords" type="button" class="sec">Import</button>
+            <input id="importRecordsInput" type="file" accept=".json" hidden />
+            <button id="clearRecords" type="button" class="sec del">Clear</button>
+          </div>
+          <div class="table-shell">
+            <table class="records-table">
+              <thead>
+                <tr>
+                  <th>Word</th>
+                  <th>Meaning</th>
+                  <th>Sentence</th>
+                  <th>Translation</th>
+                  <th>Examples</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="recordsBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <footer class="app-footer">
+        <span class="version">v0.1.21</span>
+      </footer>
+    </div>
   </body>
 </html>
