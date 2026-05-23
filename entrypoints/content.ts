@@ -16,6 +16,8 @@ export default defineContentScript({
 
     const chipPanel = createWordChipPanel()
     ui.host.shadowRoot!.append(chipPanel)
+    const bigBangIcon = createBigBangIcon()
+    ui.host.shadowRoot!.append(bigBangIcon)
 
     const stylesheet = document.createElement('style')
     stylesheet.textContent = `
@@ -31,6 +33,7 @@ export default defineContentScript({
 
     const handleSelection = () => {
       hideWordChipPanel(chipPanel)
+      hideBigBangIcon(bigBangIcon)
       window.setTimeout(() => {
         const selection = window.getSelection()
         if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
@@ -89,6 +92,7 @@ export default defineContentScript({
 
       ui.panel.hidden = true
       hideWordChipPanel(chipPanel)
+      hideBigBangIcon(bigBangIcon)
     }
 
     const handleMouseUp = (event: MouseEvent) => {
@@ -97,11 +101,13 @@ export default defineContentScript({
       window.setTimeout(() => {
         const selection = window.getSelection()
         if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+          hideBigBangIcon(bigBangIcon)
           return
         }
 
         const text = selection.toString().trim().replace(/\s+/g, ' ')
         if (!isLongSelection(text) || !isEnglishText(text)) {
+          hideBigBangIcon(bigBangIcon)
           return
         }
 
@@ -113,7 +119,7 @@ export default defineContentScript({
         const sentence = extractSentence(selection, text)
 
         bigBangPayload = { word: text, sentence, rect }
-        showWordChipPanel(chipPanel, text, rect, ui, bigBangPayload)
+        showBigBangIcon(bigBangIcon, rect)
       }, 20)
     }
 
@@ -125,11 +131,19 @@ export default defineContentScript({
       if (event.key === 'Escape') {
         ui.panel.hidden = true
         hideWordChipPanel(chipPanel)
+        hideBigBangIcon(bigBangIcon)
       }
     }
 
     const handleScroll = () => {
       hideWordChipPanel(chipPanel)
+      hideBigBangIcon(bigBangIcon)
+    }
+
+    const handleIconClick = () => {
+      if (!bigBangPayload) return
+      hideBigBangIcon(bigBangIcon)
+      showWordChipPanel(chipPanel, bigBangPayload.word, bigBangPayload.rect, ui, bigBangPayload)
     }
 
     document.addEventListener('dblclick', handleSelection)
@@ -139,6 +153,8 @@ export default defineContentScript({
     document.addEventListener('mouseup', handleMouseUp)
     document.addEventListener('keydown', handleKeyDown)
     window.addEventListener('scroll', handleScroll, true)
+
+    bigBangIcon.addEventListener('click', handleIconClick)
 
     ctx.onInvalidated(() => {
       document.removeEventListener('dblclick', handleSelection)
@@ -603,6 +619,34 @@ function findHighlightMarker(target: EventTarget | null): HTMLElement | null {
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message
   return '翻译失败，请检查配置后重试。'
+}
+
+function createBigBangIcon(): HTMLElement {
+  const el = document.createElement('div')
+  el.className = 'bigbang-icon'
+  el.textContent = '⚡'
+  el.title = '逐词分析'
+  el.hidden = true
+  return el
+}
+
+function showBigBangIcon(icon: HTMLElement, rect: DOMRect) {
+  const gap = 6
+  let left = rect.right + gap
+  let top = rect.top - 18
+  if (left + 36 > window.innerWidth - 12) {
+    left = rect.left - 36 - gap
+  }
+  if (top < 12) {
+    top = rect.bottom + gap
+  }
+  icon.style.left = `${Math.max(12, left)}px`
+  icon.style.top = `${Math.max(12, top)}px`
+  icon.hidden = false
+}
+
+function hideBigBangIcon(icon: HTMLElement) {
+  icon.hidden = true
 }
 
 function createWordChipPanel(): HTMLElement {
