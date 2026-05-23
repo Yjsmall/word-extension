@@ -14,8 +14,8 @@ export default defineContentScript({
     let bigBangPayload: BigBangPayload | null = null
     document.documentElement.append(ui.host)
 
-    const bigBangIcon = createBigBangIcon()
-    ui.host.shadowRoot!.append(bigBangIcon)
+    const chipPanel = createWordChipPanel()
+    ui.host.shadowRoot!.append(chipPanel)
 
     const stylesheet = document.createElement('style')
     stylesheet.textContent = `
@@ -30,7 +30,7 @@ export default defineContentScript({
     document.documentElement.append(stylesheet)
 
     const handleSelection = () => {
-      hideBigBangIcon(bigBangIcon)
+      hideWordChipPanel(chipPanel)
       window.setTimeout(() => {
         const selection = window.getSelection()
         if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
@@ -88,7 +88,7 @@ export default defineContentScript({
       if (findHighlightMarker(target)) return
 
       ui.panel.hidden = true
-      hideBigBangIcon(bigBangIcon)
+      hideWordChipPanel(chipPanel)
     }
 
     const handleMouseUp = (event: MouseEvent) => {
@@ -97,47 +97,39 @@ export default defineContentScript({
       window.setTimeout(() => {
         const selection = window.getSelection()
         if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
-          hideBigBangIcon(bigBangIcon)
           return
         }
 
         const text = selection.toString().trim().replace(/\s+/g, ' ')
         if (!isUsefulSelection(text) || !isEnglishText(text)) {
-          hideBigBangIcon(bigBangIcon)
           return
         }
 
         if (panelMode === 'analysis' && !ui.panel.hidden) return
+        if (!chipPanel.hidden) return
 
         const range = selection.getRangeAt(0)
         const rect = range.getBoundingClientRect()
         const sentence = extractSentence(selection, text)
 
         bigBangPayload = { word: text, sentence, rect }
-        showBigBangIcon(bigBangIcon, rect)
+        showWordChipPanel(chipPanel, text, rect, ui, bigBangPayload)
       }, 20)
     }
 
-    const handleMouseDown = (_event: MouseEvent) => {
-      hideBigBangIcon(bigBangIcon)
+    const handleMouseDown = () => {
+      // handled by document click
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         ui.panel.hidden = true
-        hideBigBangIcon(bigBangIcon)
+        hideWordChipPanel(chipPanel)
       }
     }
 
     const handleScroll = () => {
-      hideBigBangIcon(bigBangIcon)
-    }
-
-    const handleIconClick = () => {
-      if (!bigBangPayload) return
-      hideBigBangIcon(bigBangIcon)
-      panelMode = 'bigbang'
-      void requestBigBang(ui, bigBangPayload)
+      hideWordChipPanel(chipPanel)
     }
 
     document.addEventListener('dblclick', handleSelection)
@@ -145,11 +137,8 @@ export default defineContentScript({
     document.addEventListener('mouseout', handleHighlightMouseout)
     document.addEventListener('click', handleDocumentClick)
     document.addEventListener('mouseup', handleMouseUp)
-    document.addEventListener('mousedown', handleMouseDown)
     document.addEventListener('keydown', handleKeyDown)
     window.addEventListener('scroll', handleScroll, true)
-
-    bigBangIcon.addEventListener('click', handleIconClick)
 
     ctx.onInvalidated(() => {
       document.removeEventListener('dblclick', handleSelection)
@@ -157,7 +146,6 @@ export default defineContentScript({
       document.removeEventListener('mouseout', handleHighlightMouseout)
       document.removeEventListener('click', handleDocumentClick)
       document.removeEventListener('mouseup', handleMouseUp)
-      document.removeEventListener('mousedown', handleMouseDown)
       document.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('scroll', handleScroll, true)
       ui.host.remove()
@@ -376,6 +364,97 @@ function createAssistantUi(): AssistantUi {
         color: #111111;
         font-weight: 600;
       }
+      .chip-panel {
+        position: fixed;
+        z-index: 2147483646;
+        width: auto;
+        max-width: min(360px, calc(100vw - 24px));
+        box-sizing: border-box;
+        padding: 10px 12px;
+        border: 1px solid rgba(0, 0, 0, .08);
+        border-radius: 10px;
+        background: #ffffff;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, .12);
+        font: 13px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Display",
+          "Helvetica Neue", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .chip-panel[hidden] {
+        display: none;
+      }
+      .chip-hint {
+        font-size: 10px;
+        font-weight: 600;
+        color: #86868b;
+        letter-spacing: .03em;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+      }
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 10px;
+      }
+      .chip {
+        display: inline-block;
+        padding: 3px 10px;
+        border: 1px solid #c7c7cc;
+        border-radius: 14px;
+        background: #f5f5f7;
+        color: #111111;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all .2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        user-select: none;
+      }
+      .chip.active {
+        background: #111111;
+        color: #ffffff;
+        border-color: #111111;
+      }
+      .chip:hover {
+        opacity: .8;
+      }
+      .chip-foot {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+      .chip-done {
+        height: 28px;
+        padding: 0 16px;
+        border: 0;
+        border-radius: 6px;
+        background: #111111;
+        color: #ffffff;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all .2s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      .chip-done:hover {
+        background: #2c2c2e;
+      }
+      .chip-done:active {
+        transform: scale(0.97);
+      }
+      .chip-cancel {
+        height: 28px;
+        padding: 0 8px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: #86868b;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all .2s cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      .chip-cancel:hover {
+        color: #111111;
+      }
     </style>
     <section class="panel" hidden>
       <div class="top">
@@ -384,6 +463,7 @@ function createAssistantUi(): AssistantUi {
       </div>
       <div class="body"></div>
     </section>
+    <div class="chip-panel" hidden></div>
   `
   const panel = shadow.querySelector<HTMLElement>('.panel')
   const title = shadow.querySelector<HTMLElement>('.title')
@@ -521,32 +601,80 @@ function getErrorMessage(error: unknown): string {
   return '翻译失败，请检查配置后重试。'
 }
 
-function createBigBangIcon(): HTMLElement {
+function createWordChipPanel(): HTMLElement {
   const el = document.createElement('div')
-  el.className = 'bigbang-icon'
-  el.textContent = '⚡'
-  el.title = '逐词分析'
+  el.className = 'chip-panel'
   el.hidden = true
   return el
 }
 
-function showBigBangIcon(icon: HTMLElement, rect: DOMRect) {
-  const gap = 6
-  let left = rect.right + gap
-  let top = rect.top - 18
-  if (left + 36 > window.innerWidth - 12) {
-    left = rect.left - 36 - gap
-  }
-  if (top < 12) {
-    top = rect.bottom + gap
-  }
-  icon.style.left = `${Math.max(12, left)}px`
-  icon.style.top = `${Math.max(12, top)}px`
-  icon.hidden = false
+function showWordChipPanel(
+  panel: HTMLElement,
+  fullText: string,
+  rect: DOMRect,
+  ui: AssistantUi,
+  payload: BigBangPayload
+) {
+  const words = fullText.split(/\s+/).filter(Boolean)
+  if (words.length < 1) return
+
+  const chips = words
+    .map(
+      (w, i) =>
+        `<span class="chip active" data-index="${i}">${escapeHtml(w)}</span>`
+    )
+    .join('')
+
+  panel.innerHTML = `
+    <div class="chip-hint">选择要分析的单词</div>
+    <div class="chip-row">${chips}</div>
+    <div class="chip-foot">
+      <button type="button" class="chip-cancel" id="chip-cancel">取消</button>
+      <button type="button" class="chip-done" id="chip-done">完成</button>
+    </div>
+  `
+
+  positionChipPanel(panel, rect)
+  panel.hidden = false
+
+  const chipElements = panel.querySelectorAll<HTMLElement>('.chip')
+  chipElements.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      chip.classList.toggle('active')
+    })
+  })
+
+  panel.querySelector('#chip-done')?.addEventListener('click', () => {
+    const selected: string[] = []
+    panel.querySelectorAll<HTMLElement>('.chip.active').forEach((chip) => {
+      const idx = parseInt(chip.dataset.index || '0', 10)
+      const w = words[idx]
+      if (w) selected.push(w)
+    })
+    if (selected.length === 0) return
+    panel.hidden = true
+    const word = selected.join(' ')
+    ui.panel.classList.add('bigbang')
+    ui.panel.hidden = false
+    ui.title.textContent = word
+    ui.body.innerHTML = '<div class="status">⏳ 分析中...</div>'
+    positionPanel(ui.panel, rect)
+    void requestBigBang(ui, { word, sentence: payload.sentence, rect })
+  })
+
 }
 
-function hideBigBangIcon(icon: HTMLElement) {
-  icon.hidden = true
+function hideWordChipPanel(panel: HTMLElement) {
+  panel.hidden = true
+}
+
+function positionChipPanel(panel: HTMLElement, rect: DOMRect) {
+  const gap = 8
+  const below = rect.bottom + gap
+  const top = below < window.innerHeight - 120 ? below : rect.top - 120 - gap
+  const left = Math.min(Math.max(12, rect.left), window.innerWidth - 372)
+  panel.style.left = `${Math.max(12, left)}px`
+  panel.style.top = `${Math.max(12, top)}px`
 }
 
 async function requestBigBang(ui: AssistantUi, payload: BigBangPayload) {
