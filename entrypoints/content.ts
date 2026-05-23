@@ -101,7 +101,7 @@ export default defineContentScript({
         }
 
         const text = selection.toString().trim().replace(/\s+/g, ' ')
-        if (!isUsefulSelection(text) || !isEnglishText(text)) {
+        if (!isLongSelection(text) || !isEnglishText(text)) {
           return
         }
 
@@ -517,7 +517,11 @@ function positionPanel(panel: HTMLElement, rect: DOMRect) {
 }
 
 function isUsefulSelection(value: string): boolean {
-  return value.length > 0 && value.length <= 80 && !/^\d+$/.test(value)
+  return value.length > 0 && value.length <= 200 && !/^\d+$/.test(value)
+}
+
+function isLongSelection(value: string): boolean {
+  return value.length > 0 && value.length <= 600 && !/^\d+$/.test(value)
 }
 
 function isEnglishWord(value: string): boolean {
